@@ -7,7 +7,9 @@
     "noUnusedParameters": true,
     "removeComments": true,
     "sourceMap": true,
+    "esModuleInterop": true,
     "target": "ES2020",
+    "module": "esnext",
     "outDir": "lib"
   },
   "include": ["src/**/*.ts", "serverless.ts"],

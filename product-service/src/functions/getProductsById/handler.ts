@@ -15,4 +15,5 @@ const getProductsById = async (event: APIGatewayProxyEvent):Promise<Object> => {
   } else { throw new AppError('No query parameters provided', 400); }
 };
 
+export default getProductsById;
 export const main = middyfy(getProductsById);
