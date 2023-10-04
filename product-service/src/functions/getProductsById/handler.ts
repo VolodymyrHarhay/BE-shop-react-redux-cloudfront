@@ -1,27 +1,18 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
+import { APIGatewayProxyEvent } from 'aws-lambda';
 import { books } from '../../constants';
-import { formatJSONResponse } from '@libs/api-gateway';
+import { AppError } from '@libs/appError';
+import { middyfy } from '@libs/lambda';
 
-const getProductsById = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
+const getProductsById = async (event: APIGatewayProxyEvent):Promise<Object> => {
   const pathParameters = event.pathParameters;
 
-    if (pathParameters) {
-        const productId = pathParameters.productId;
-        const book = books.find(({id}) => id === Number(productId));
-        return {
-          statusCode: 200,
-          body: JSON.stringify(book),
-        };
-    } else {
-        return {
-          statusCode: 400,
-          body: JSON.stringify({ error: 'No query parameters provided' }),
-        };
-    }
-  // return formatJSONResponse({
-  //   message: `Hello ${event.body.name}, welcome to the exciting Serverless world!`,
-  //   event,
-  // });
+  if (pathParameters) {
+    const productId = pathParameters.productId;
+    const book = books.find(({id}) => id === Number(productId));
+    if (book) {
+      return book;
+    } else { throw new AppError('Book not found', 404); }
+  } else { throw new AppError('No query parameters provided', 400); }
 };
 
-export const main = getProductsById;
+export const main = middyfy(getProductsById);
