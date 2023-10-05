@@ -1,7 +1,6 @@
 {
   "name": "product-service",
   "version": "1.0.0",
-  "type": "module",
   "description": "Serverless aws-nodejs-typescript template",
   "main": "serverless.ts",
   "scripts": {

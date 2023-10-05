@@ -1,6 +1,7 @@
 
 import getBookById from './handler';
 import { books } from '../../constants';
+jest.mock('@libs/lambda');
 
 describe('getProductById', () => {
   it('should return correct book', async () => {

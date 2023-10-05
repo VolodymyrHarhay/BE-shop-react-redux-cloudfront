@@ -1,6 +1,7 @@
 
 import getBooksList from './handler';
 import { books } from '../../constants';
+jest.mock('@libs/lambda');
 
 describe('getProductList', () => {
   it('should return list of books', async () => {
