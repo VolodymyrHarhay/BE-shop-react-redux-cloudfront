@@ -5,14 +5,17 @@
   "main": "serverless.ts",
   "scripts": {
     "offline": "sls offline --noPrependStageInUrl",
-    "test": "jest"
+    "test": "jest",
+    "mockTables": "node mockDynamoDBTables.mjs"
   },
   "engines": {
     "node": ">=14.15.0"
   },
   "dependencies": {
     "@middy/core": "^3.4.0",
-    "@middy/http-json-body-parser": "^3.4.0"
+    "@middy/http-json-body-parser": "^3.4.0",
+    "aws-sdk": "^2.1472.0",
+    "dotenv": "^16.3.1"
   },
   "devDependencies": {
     "@serverless/typescript": "^3.0.0",
@@ -26,6 +29,7 @@
     "serverless-aws-documentation": "^1.1.0",
     "serverless-esbuild": "^1.23.3",
     "serverless-offline": "^13.1.2",
+    "serverless-openapi-documentation": "^0.4.0",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.4.0",
     "tsconfig-paths": "^3.9.0",

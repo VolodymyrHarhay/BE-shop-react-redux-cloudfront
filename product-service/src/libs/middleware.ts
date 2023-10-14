@@ -7,6 +7,10 @@ import { AppError } from './appError';
 
 export const apiGatewayResponseMiddleware = (options: { enableErrorLogger?: boolean } = {}) => {
 
+  const before: middy.MiddlewareFn<APIGatewayProxyEvent> = async (request): Promise<void> => {
+    console.log('event = ', request?.event);
+  }
+
   const after: middy.MiddlewareFn<APIGatewayProxyEvent> = async (request): Promise<void> => {
     if (!request.event?.httpMethod || request.response === undefined || request.response === null) {
       return;
@@ -43,6 +47,7 @@ export const apiGatewayResponseMiddleware = (options: { enableErrorLogger?: bool
   }
 
   return {
+    before,
     after,
     onError,
   };

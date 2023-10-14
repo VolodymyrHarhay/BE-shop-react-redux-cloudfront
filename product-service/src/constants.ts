@@ -41,3 +41,6 @@ export const books = [
     price: 600
   }
 ];
+
+export const productsTableName = process.env.DYNAMODB_BOOKS_TABLE;
+export const stocksTableName = process.env.DYNAMODB_STOCKS_TABLE;
