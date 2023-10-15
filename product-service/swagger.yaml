@@ -1,34 +1,62 @@
+
 openapi: 3.0.0
 info:
   title: Product Service API
   version: 1.0.0
-
 servers:
   - url: 'https://akj8ohr428.execute-api.eu-north-1.amazonaws.com/dev'
-
 paths:
   /products:
     get:
-      summary: Get a list of Products
+      summary: Get a list of products
       responses:
         '200':
           description: A list of products
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Product'
+                $ref: '#/components/schemas/ProductList'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyError'
+    post:
+      summary: Create a new product
+      description: Create a new product in the database.
+      requestBody:
+        description: Request body for creating a new product
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreateRequest'
+      responses:
+        '201':
+          description: Product created successfully
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyError'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MyError'
   /products/{productId}:
     get:
-      summary: Get a product by ID
+      summary: Get a single product by ID
       parameters:
         - name: productId
           in: path
           required: true
           schema:
             type: string
-          description: The unique identifier of the Product.
+          description: The unique identifier of the product.
       responses:
         '200':
           description: A single product
@@ -41,15 +69,27 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-
+                $ref: '#/components/schemas/MyError'
 components:
   schemas:
     Product:
       type: object
       properties:
         id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        price:
           type: number
+    ProductList:
+      type: array
+      items:
+        $ref: '#/components/schemas/Product'
+    ProductCreateRequest:
+      type: object
+      properties:
         title:
           type: string
         description:
@@ -58,7 +98,7 @@ components:
           type: number
         count:
           type: number
-    Error:
+    MyError:
       type: object
       properties:
         message:
