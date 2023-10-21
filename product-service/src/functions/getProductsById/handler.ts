@@ -1,14 +1,24 @@
+import { DynamoDB } from 'aws-sdk';
 import { APIGatewayProxyEvent } from 'aws-lambda';
-import { books } from '../../constants';
 import { AppError } from '@libs/appError';
 import { middyfy } from '@libs/lambda';
+import { productsTableName } from '../../constants';
 
-const getProductsById = async (event: APIGatewayProxyEvent):Promise<Object> => {
+const docClient = new DynamoDB.DocumentClient();
+
+const getProductsById = async (event: APIGatewayProxyEvent): Promise<any> => {
   const pathParameters = event.pathParameters;
 
-  if (pathParameters) {
+  if (pathParameters?.productId) {
     const productId = pathParameters.productId;
-    const book = books.find(({id}) => id === Number(productId));
+    const params = {
+      TableName: productsTableName,
+      Key: {
+        id: productId,
+      },
+    };
+    const data = await docClient.get(params).promise();
+    const book = data?.Item;
     if (book) {
       return book;
     } else { throw new AppError('Book not found', 404); }
