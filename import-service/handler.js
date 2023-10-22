@@ -73,21 +73,21 @@ module.exports = {
       const results = await processS3File();
       console.log({results});
 
-    // Copy the file to the "parsed" folder
-    const parsedKey = `${parsedFolder}/${key.replace('uploaded/', '')}`;
-    await s3
-      .copyObject({ Bucket: bucket, CopySource: `${bucket}/${key}`, Key: parsedKey })
-      .promise();
+      // Copy the file to the "parsed" folder
+      const parsedKey = `${parsedFolder}/${key.replace('uploaded/', '')}`;
+      await s3
+        .copyObject({ Bucket: bucket, CopySource: `${bucket}/${key}`, Key: parsedKey })
+        .promise();
 
-    // Delete the file from the "uploaded" folder
-    await s3.deleteObject({ Bucket: bucket, Key: key }).promise();
+      // Delete the file from the "uploaded" folder
+      await s3.deleteObject({ Bucket: bucket, Key: key }).promise();
 
-    console.log(`File moved to the "parsed" folder and deleted from "uploaded"`);
+      console.log(`File moved to the "parsed" folder and deleted from "uploaded"`);
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: 'File processed successfully.' }),
-    };
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ message: 'File processed successfully.' }),
+      };
     } catch (err) {
     console.log('Error: ', err);
     return {
