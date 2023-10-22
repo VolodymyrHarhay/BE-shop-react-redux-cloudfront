@@ -1,0 +1,55 @@
+
+service: import-service
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: dev
+  region: eu-north-1
+  httpApi:
+    cors: true
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action: "s3:ListBucket"
+      Resource:
+        - "arn:aws:s3:::import-service-bucket-lab"
+    - Effect: Allow
+      Action:
+        - "s3:*"
+      Resource:
+        - "arn:aws:s3:::import-service-bucket-lab/*"
+
+functions:
+  importProductsFile:
+    handler: handler.importProductsFile
+    events:
+     - httpApi:
+        path: /import
+        method: get
+  importFileParser:
+    handler: handler.importFileParser
+    events:
+      - s3:
+          bucket: import-service-bucket-lab
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: uploaded/
+          existing: true
+
+#    Define function environment variables here
+#    environment:
+#      variable2: value2
+
+# you can add CloudFormation resource templates here
+#resources:
+#  Resources:
+#    NewResource:
+#      Type: AWS::S3::Bucket
+#      Properties:
+#        BucketName: my-new-bucket
+#  Outputs:
+#     NewOutput:
+#       Description: "Description for the output"
+#       Value: "Some output value"
