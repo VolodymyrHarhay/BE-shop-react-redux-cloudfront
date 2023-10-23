@@ -1,6 +1,6 @@
 'use strict';
 const AWS = require('aws-sdk');
-const readline = require('readline');
+const csvParser = require('csv-parser');
 
 const uploadedFolder = 'uploaded';
 const parsedFolder = 'parsed';
@@ -46,54 +46,60 @@ module.exports = {
     }
   },
   importFileParser: async (event) => {
-    const record = event.Records[0]; // Assuming only one record is processed at a time
-    const bucket = record.s3.bucket.name;
-    const key = record.s3.object.key;
-  
-    console.log(`Processing S3 object: s3://${bucket}/${key}`);
     try {
-      function processS3File() {
-        return new Promise((resolve, reject) => {
-          console.log('File read from S3.');
-          let records = [];
-          try {
-            let readStream = s3.getObject({ Bucket: bucket, Key: key }).createReadStream();
-            let lineReader = readline.createInterface({ input: readStream });
-            lineReader.on('line', line => {
-              records.push(line);
-            }).on('close', () => {
-              console.log('Finished processing S3 file.');
-              resolve(records);
-          });
-          } catch (err) {
-          reject(err);
-          }
-        });
-      }
-      const results = await processS3File();
-      console.log({results});
-
+      const record = event.Records[0]; // Assuming only one record is processed at a time
+      const bucket = record.s3.bucket.name;
+      const key = record.s3.object.key;
+  
+      console.log(`Processing S3 object: s3://${bucket}/${key}`);
+  
+      const records = await processCsvFile(bucket, key);
+      console.log({records});
+  
       // Copy the file to the "parsed" folder
       const parsedKey = `${parsedFolder}/${key.replace('uploaded/', '')}`;
-      await s3
-        .copyObject({ Bucket: bucket, CopySource: `${bucket}/${key}`, Key: parsedKey })
-        .promise();
-
+      await s3.copyObject({ Bucket: bucket, CopySource: `${bucket}/${key}`, Key: parsedKey }).promise();
+  
       // Delete the file from the "uploaded" folder
       await s3.deleteObject({ Bucket: bucket, Key: key }).promise();
-
+  
       console.log(`File moved to the "parsed" folder and deleted from "uploaded"`);
-
+  
       return {
         statusCode: 200,
-        body: JSON.stringify({ message: 'File processed successfully.' }),
+        body: JSON.stringify({ message: 'File processed successfully.', records }),
       };
     } catch (err) {
-    console.log('Error: ', err);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ message: err?.message || 'Internal server error.' }),
-    };
-  }}
+      console.log('Error: ', err);
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ message: err?.message || 'Internal server error.' }),
+      };
+    }
+  }
 };
+
+async function processCsvFile(bucket, key) {
+  return new Promise((resolve, reject) => {
+    console.log('File read from S3.');
+    const records = [];
+
+    const readStream = s3.getObject({ Bucket: bucket, Key: key }).createReadStream();
+
+    readStream
+      .pipe(csvParser({ separator: ';' }))
+      .on('data', (data) => {
+        data.price = Number(data.price);
+        records.push(data);
+      })
+      .on('end', () => {
+        console.log('Finished processing S3 file.');
+        resolve(records);
+      })
+      .on('error', (err) => {
+        console.error('Error reading S3 file:', err);
+        reject(err);
+      });
+  });
+}
 
