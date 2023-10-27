@@ -3,6 +3,7 @@ import type { AWS } from '@serverless/typescript';
 import getProductsList from '@functions/getProductsList';
 import getProductsById from '@functions/getProductsById';
 import createProduct from '@functions/createProduct';
+import catalogBatchProcess from '@functions/catalogBatchProcess';
 
 const productsTableName = 'Products';
 const stocksTableName = 'Stocks';
@@ -25,6 +26,10 @@ const serverlessConfiguration: AWS = {
       NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000',
       DYNAMODB_BOOKS_TABLE: process.env.DYNAMODB_BOOKS_TABLE,
       DYNAMODB_STOCKS_TABLE: process.env.DYNAMODB_STOCKS_TABLE,
+      SQS_URL: { 'Fn::GetAtt': ['SQSQueue', 'Arn'] }, 
+      SNS_ARN: { 
+        Ref: 'createProductTopic'
+      },
     },
     iamRoleStatements: [
       {
@@ -47,10 +52,24 @@ const serverlessConfiguration: AWS = {
           process.env.PRODUCTS_TABLE_ARN,
           process.env.STOCKS_TABLE_ARN
         ]
+      },
+      {
+        Effect: 'Allow',
+        Action: 'sqs:*',
+        Resource: {
+          'Fn::GetAtt': ['SQSQueue', 'Arn'],
+        }
+      },
+      {
+        Effect: 'Allow',
+        Action: 'sns:*',
+        Resource: {
+          Ref: 'createProductTopic'
+        }
       }
     ]
   },
-  functions: { getProductsList, getProductsById, createProduct },
+  functions: { getProductsList, getProductsById, createProduct, catalogBatchProcess },
   resources: {
     Resources: {
       ProductsDynamoDBTable: {
@@ -97,7 +116,47 @@ const serverlessConfiguration: AWS = {
           },
         },
       },
-    },
+      SQSQueue: {
+        Type: 'AWS::SQS::Queue',
+        Properties: {
+          QueueName: 'catalogItemsQueue',
+        },
+      },
+      createProductTopic: {
+        Type: 'AWS::SNS::Topic',
+        Properties: {
+          TopicName: 'create-product-topic',
+        },
+      },
+      createProductTopicSubscription: {
+        Type: 'AWS::SNS::Subscription',
+        Properties: {
+          Protocol: 'email',
+          TopicArn: {
+            Ref: 'createProductTopic',
+          },
+          FilterPolicy: {
+            price: [{ 'numeric': ['<=', 500] }]
+          },
+          FilterPolicyScope: 'MessageAttributes',
+          Endpoint: 'volodymyrharhay@gmail.com',
+        },
+      },
+      createProductTopicSubscription2: {
+        Type: 'AWS::SNS::Subscription',
+        Properties: {
+          Protocol: 'email',
+          TopicArn: {
+            Ref: 'createProductTopic',
+          },
+          FilterPolicy: {
+            price: [{ 'numeric': ['>', 500] }]
+          },
+          FilterPolicyScope: 'MessageAttributes',
+          Endpoint: 'volodymyr_harhay@epam.com',
+        },
+      },
+    }
   },
   package: { individually: true },
   custom: {

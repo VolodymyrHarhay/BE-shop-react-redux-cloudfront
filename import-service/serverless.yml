@@ -20,6 +20,9 @@ provider:
         - "s3:*"
       Resource:
         - "arn:aws:s3:::import-service-bucket-lab/*"
+    - Effect: Allow
+      Action: sqs:*
+      Resource: arn:aws:sqs:eu-north-1:688798769247:catalogItemsQueue
 
 functions:
   importProductsFile:
@@ -37,18 +40,9 @@ functions:
           rules:
             - prefix: uploaded/
           existing: true
+    environment:
+      SQS_URL: https://sqs.eu-north-1.amazonaws.com/688798769247/catalogItemsQueue
 
-#    Define function environment variables here
-#    environment:
-#      variable2: value2
-
-# you can add CloudFormation resource templates here
-#resources:
-#  Resources:
-#    NewResource:
-#      Type: AWS::S3::Bucket
-#      Properties:
-#        BucketName: my-new-bucket
 #  Outputs:
 #     NewOutput:
 #       Description: "Description for the output"

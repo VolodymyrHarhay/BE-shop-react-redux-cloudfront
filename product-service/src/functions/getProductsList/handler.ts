@@ -15,7 +15,7 @@ const getProductsList = async ():Promise<Object[]> => {
       count: stock ? stock.count : 0,
     };
   });
-
+  result.sort((x, y) => x.title.localeCompare(y.title));
   return result;
 };
 export default getProductsList;
