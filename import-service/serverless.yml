@@ -9,6 +9,13 @@ provider:
   region: eu-north-1
   httpApi:
     cors: true
+    authorizers:
+      tokenAuthorizer:
+        type: request
+        functionArn: arn:aws:lambda:eu-north-1:688798769247:function:authorization-service-dev-basicAuthorizer
+        resultTtlInSeconds: 0
+        identitySource: $request.header.Authorization
+        name: tokenAuthorizer
 
   iamRoleStatements:
     - Effect: Allow
@@ -31,6 +38,8 @@ functions:
      - httpApi:
         path: /import
         method: get
+        authorizer:
+          name: tokenAuthorizer
   importFileParser:
     handler: handler.importFileParser
     events:
