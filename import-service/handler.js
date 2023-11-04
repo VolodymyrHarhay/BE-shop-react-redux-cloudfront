@@ -6,6 +6,7 @@ const uploadedFolder = 'uploaded';
 const parsedFolder = 'parsed';
 
 const s3 = new AWS.S3();
+const sqs = new AWS.SQS();
 
 module.exports = {
   importProductsFile: async (event) => {
@@ -68,6 +69,11 @@ module.exports = {
       return {
         statusCode: 200,
         body: JSON.stringify({ message: 'File processed successfully.', records }),
+        headers: {
+          "Access-Control-Allow-Headers" : "Content-Type",
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "OPTIONS,POST,GET,DELETE,PUT"
+        },
       };
     } catch (err) {
       console.log('Error: ', err);
@@ -85,12 +91,19 @@ async function processCsvFile(bucket, key) {
     const records = [];
 
     const readStream = s3.getObject({ Bucket: bucket, Key: key }).createReadStream();
-
     readStream
       .pipe(csvParser({ separator: ';' }))
-      .on('data', (data) => {
+      .on('data', async(data) => {
         data.price = Number(data.price);
+        data.id = data.id;
         records.push(data);
+        await sqs.sendMessage({
+          QueueUrl: process.env.SQS_URL,
+          MessageBody: JSON.stringify(data),
+        }, (err, data) => {
+          if (err) console.log(err, err.stack);
+          console.log('send message: ', data);
+        }).promise();
       })
       .on('end', () => {
         console.log('Finished processing S3 file.');
