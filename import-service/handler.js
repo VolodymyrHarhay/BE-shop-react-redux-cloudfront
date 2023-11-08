@@ -93,17 +93,17 @@ async function processCsvFile(bucket, key) {
     const readStream = s3.getObject({ Bucket: bucket, Key: key }).createReadStream();
     readStream
       .pipe(csvParser({ separator: ';' }))
-      .on('data', (data) => {
+      .on('data', async(data) => {
         data.price = Number(data.price);
         data.id = data.id;
         records.push(data);
-        sqs.sendMessage({
+        await sqs.sendMessage({
           QueueUrl: process.env.SQS_URL,
           MessageBody: JSON.stringify(data),
         }, (err, data) => {
           if (err) console.log(err, err.stack);
           console.log('send message: ', data);
-        });
+        }).promise();
       })
       .on('end', () => {
         console.log('Finished processing S3 file.');
