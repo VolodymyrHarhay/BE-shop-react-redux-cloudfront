@@ -11,7 +11,7 @@ const sqs = new AWS.SQS();
 module.exports = {
   importProductsFile: async (event) => {
     console.log({event});
-    const { name } = event.queryStringParameters;
+    const { name } = event?.queryStringParameters || {};
     if (!name) {
       return {
         statusCode: 400,
