@@ -2,8 +2,11 @@ branch-defaults:
   default:
     environment: null
     group_suffix: null
+  task-10:
+    environment: development
+    group_suffix: null
 global:
-  application_name: bff-service
+  application_name: bff
   branch: null
   default_ec2_keyname: null
   default_platform: Node.js 18
