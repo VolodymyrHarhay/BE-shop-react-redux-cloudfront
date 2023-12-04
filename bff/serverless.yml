@@ -1,0 +1,22 @@
+service: my-express-application
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    noPrependStageInUrl: true
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  stage: dev
+  region: eu-north-1
+
+functions:
+  app:
+    handler: index.handler
+    events:
+      - http:
+          path: /{any+}
+          method: any
